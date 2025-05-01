@@ -23,12 +23,22 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = '__all__'
 
-class QuotationItemSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+# class QuotationItemSerializer(serializers.ModelSerializer):
+#     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
+#     class Meta:
+#         model = QuotationItem
+#         fields = ['id', 'product', 'quantity', 'price_per_unit']
+
+class QuotationItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuotationItem
-        fields = ['id', 'product', 'quantity', 'price_per_unit']
+        fields = ['product', 'price']
+
+    def validate(self, data):
+        if 'product' in data and not data.get('price'):
+            data['price'] = data['product'].price  # ดึงราคาจากสินค้า
+        return data
 
 class QuotationSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext as _
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 
 
 class Customer(models.Model):
@@ -12,19 +13,27 @@ class Customer(models.Model):
     address = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.name_th ,self.phone_number,self.address
-    
+        return "{}".format(self.name_th)
+        
 
 class Quotation(models.Model):
     STATUS_CHOICES = [
         ('draft', _('แบบร่าง')),
         ('sent', _('ส่งแล้ว')),
+        ('pending', 'รออนุมัติ'),
         ('revised', _('ปรับแก้ไข')),
         ('approved', _('ลูกค้าอนุมัติ')),
         ('rejected', _('ลูกค้าปฏิเสธ')),
         ('cancelled', _('ยกเลิก')),
         ('converted', _('แปลงเป็นใบแจ้งหนี้')),
     ]
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',  # ตั้งค่าสถานะเริ่มต้นเป็น 'pending'
+    )
+
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     quotation_date = models.DateField(null=True, blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -33,17 +42,8 @@ class Quotation(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("วันที่อัปเดต"))
 
     def __str__(self):
-        return self.quotation_date,self.id,self.customer,self.total_amount,self.status
-
-class QuotationItem(models.Model):
-    quotation = models.ForeignKey(Quotation, related_name='items', on_delete=models.CASCADE)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])  # ต้องมีจำนวนอย่างน้อย 1
-    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.product.name} x {self.quantity}"
-
+           return "วันที่ {} id: {} ชื่อลูกค้า {} ยอดรวม {} สภานะ {}".format(self.quotation_date, self.id, self.customer.name_th, self.total_amount, self.status)
+        
 
 class Product(models.Model):
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
@@ -57,7 +57,36 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.id ,self.name ,self.unit_price,self.stock_quantity,self.category
+       return f"{self.id} - {self.name}"
+        # return "id: {} ขื่อสินค้า {} ราคาต่อหน่วย {} จำนวนคงคลัง {} หมวดหมู่สินค้า {}".format(self.id, self.name, self.unit_price, self.stock_quantity, self.category)
+
+class QuotationItem(models.Model):
+    quotation = models.ForeignKey(Quotation, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])  # ต้องมีจำนวนอย่างน้อย 1
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def total_price(self):
+        """คำนวณราคารวมอัตโนมัติ"""
+        return self.quantity * self.price_per_unit
+    
+    def clean(self):
+        if self.quantity > self.product.stock_quantity:
+            raise ValidationError('สินค้าในสต็อกไม่เพียงพอ')    
+    
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity} @ ฿{self.price_per_unit}"
+
+
+class Category(models.Model):
+    category_name = models.CharField(max_length=255)
+    # parent_category = models.ForeignKey(
+    #     'self', on_delete=models.SET_NULL, blank=True, null=True, related_name='subcategories'
+    # )
+
+    def __str__(self):
+        return self.category_name
 
 
 class Invoice(models.Model):
@@ -89,16 +118,6 @@ class InvoiceItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"
-
-
-class Category(models.Model):
-    category_name = models.CharField(max_length=255)
-    parent_category = models.ForeignKey(
-        'self', on_delete=models.SET_NULL, blank=True, null=True, related_name='subcategories'
-    )
-
-    def __str__(self):
-        return self.category_name
 
 
 class CashSale(models.Model):

@@ -1,6 +1,4 @@
 from django.shortcuts import render
-
-
 from rest_framework import viewsets
 from .models import (
     Customer, Product, Category, Quotation, QuotationItem, Invoice, InvoiceItem,
@@ -10,6 +8,7 @@ from .serializers import (
     CustomerSerializer, ProductSerializer, CategorySerializer,
     QuotationSerializer, InvoiceSerializer, CashSaleSerializer, ReceiptSerializer
 )
+
 
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
