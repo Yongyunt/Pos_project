@@ -14,18 +14,45 @@ class Customer(models.Model):
 
     def __str__(self):
         return "{}".format(self.name_th)
-        
+
+
+class Receipt(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+    ('cash', _('เงินสด')),
+    ('transfer', _('โอน')),
+]
+    
+    invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='receipts', null=True, blank=True)
+    quotation = models.ForeignKey('Quotation', on_delete=models.SET_NULL, null=True, blank=True, related_name='receipts')
+    customer = models.ForeignKey('customer', on_delete=models.CASCADE, related_name='receipts')
+    receipt_date = models.DateField(null=True, blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.receipt_date} | {(self.customer.name_th if self.customer else 'ไม่มีลูกค้า')} | {self.total_amount} | {self.payment_method}"
+        # return {self.receipt_date,self.id,self.customer,self.total_amount,self.payment_method}
+    
+class ReceiptItem(models.Model):
+    receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.product.name} - {self.quantity} units"
+    
+    class Meta:
+        unique_together = ('receipt', 'product')
+
 
 class Quotation(models.Model):
     STATUS_CHOICES = [
-        ('draft', _('แบบร่าง')),
         ('sent', _('ส่งแล้ว')),
         ('pending', 'รออนุมัติ'),
-        ('revised', _('ปรับแก้ไข')),
-        ('approved', _('ลูกค้าอนุมัติ')),
-        ('rejected', _('ลูกค้าปฏิเสธ')),
-        ('cancelled', _('ยกเลิก')),
-        ('converted', _('แปลงเป็นใบแจ้งหนี้')),
+        ('approved', _('ดำเนินการแล้ว')),
+        ('Not approved', _('ไม่ได้รับการอนุมัติ')),
+        ('converted', _('แปลงเป็นใบเสร็จรับเงิน')),
     ]
 
     status = models.CharField(
@@ -36,14 +63,27 @@ class Quotation(models.Model):
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     quotation_date = models.DateField(null=True, blank=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("วันที่สร้าง"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("วันที่อัปเดต"))
 
+    def save(self, *args, **kwargs):
+        # ถ้า status เป็น approved → เปลี่ยนเป็น 'ดำเนินการแล้ว'
+        if self.status == 'approved':
+            self.status = 'ดำเนินการแล้ว'
+        super().save(*args, **kwargs)
+
+    def update_total_amount(self):
+        total = sum(item.total_price for item in self.items.all())
+        self.total_amount = total
+        self.save()
+
     def __str__(self):
-           return "วันที่ {} id: {} ชื่อลูกค้า {} ยอดรวม {} สภานะ {}".format(self.quotation_date, self.id, self.customer.name_th, self.total_amount, self.status)
-        
+        return f"[{self.quotation_date}] ลูกค้า: {self.customer.name_th} | ยอดรวม: ฿{self.total_amount} | สถานะ: {self.status}"
+
+    class Meta:
+        ordering = ['id'] 
 
 class Product(models.Model):
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
@@ -70,14 +110,19 @@ class QuotationItem(models.Model):
     def total_price(self):
         """คำนวณราคารวมอัตโนมัติ"""
         return self.quantity * self.price_per_unit
-    
+
     def clean(self):
         if self.quantity > self.product.stock_quantity:
-            raise ValidationError('สินค้าในสต็อกไม่เพียงพอ')    
-    
-    def __str__(self):
-        return f"{self.product.name} x{self.quantity} @ ฿{self.price_per_unit}"
+            raise ValidationError('สินค้าในสต็อกไม่เพียงพอ')
 
+    def save(self, *args, **kwargs):
+        # ถ้ายังไม่มีราคา (หรืออยากให้ update ทุกครั้งที่เปลี่ยน product)
+        if not self.price_per_unit:
+            self.price_per_unit = self.product.price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity} ราคาต่อหน่วย = {self.price_per_unit}฿"
 
 class Category(models.Model):
     category_name = models.CharField(max_length=255)
@@ -144,17 +189,5 @@ class CashSaleItem(models.Model):
         return f"{self.product.name} x {self.quantity}"
 
 
-class Receipt(models.Model):
-    PAYMENT_METHOD_CHOICES = [
-    ('cash', _('เงินสด')),
-    ('transfer', _('โอน')),
-]
-    invoice = models.ForeignKey(Invoice, null=True, blank=True, on_delete=models.SET_NULL, related_name='receipts')
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='receipts')
-    receipt_date = models.DateField()
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=50)
 
-    def __str__(self):
-        return {self.receipt_date,self.id,self.customer,self.total_amount,self.payment_method}
     

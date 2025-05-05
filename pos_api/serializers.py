@@ -1,15 +1,15 @@
-# pos_api/serializers.py
-
 from rest_framework import serializers
 from .models import (
     Customer, Product, Category, Quotation, QuotationItem, Invoice, InvoiceItem,
     CashSale, CashSaleItem, Receipt
 )
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
+
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
@@ -18,27 +18,26 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
+
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
 
-# class QuotationItemSerializer(serializers.ModelSerializer):
-#     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
-
-#     class Meta:
-#         model = QuotationItem
-#         fields = ['id', 'product', 'quantity', 'price_per_unit']
 
 class QuotationItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuotationItem
-        fields = ['product', 'price']
+        fields = ['id', 'quotation', 'product', 'quantity', 'price_per_unit', 'total_price']
+        read_only_fields = ['total_price']
 
+# เช็คว่า product มีอยู่ใน quotation item หรือไม่
     def validate(self, data):
-        if 'product' in data and not data.get('price'):
-            data['price'] = data['product'].price  # ดึงราคาจากสินค้า
+        product = data.get('product')
+        if product and not data.get('price_per_unit'):
+            data['price_per_unit'] = product.price
         return data
+    
 
 class QuotationSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
@@ -69,12 +68,14 @@ class QuotationSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class InvoiceItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
         model = InvoiceItem
         fields = ['id', 'product', 'quantity', 'price_per_unit']
+
 
 class InvoiceSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
@@ -108,12 +109,14 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class CashSaleItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
         model = CashSaleItem
         fields = ['id', 'product', 'quantity', 'price_per_unit']
+
 
 class CashSaleSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
@@ -144,6 +147,7 @@ class CashSaleSerializer(serializers.ModelSerializer):
             CashSaleItem.objects.create(cash_sale=instance, **item)
 
         return instance
+
 
 class ReceiptSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())

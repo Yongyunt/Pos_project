@@ -1,5 +1,5 @@
 from django.contrib import admin
-from pos_api.models import Customer,Quotation,QuotationItem,Product,Category,CashSale
+from pos_api.models import Customer,Quotation,QuotationItem,Product,Category,CashSale,Receipt
 
 # Register your models here.
 
@@ -26,8 +26,6 @@ class QuotationAdmin(admin.ModelAdmin):
      
 
 admin.site.register(Quotation, QuotationAdmin)
-
-
 admin.site.register(QuotationItem)
 
 class ProductAdmin(admin.ModelAdmin):
@@ -36,4 +34,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('category',)
 
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Receipt)
+
+admin.site.register(CashSale)
 admin.site.register(Category)
