@@ -1,5 +1,5 @@
 from django.contrib import admin
-from pos_api.models import Customer,Quotation,QuotationItem,Product,Category,CashSale,Receipt
+from pos_api.models import Customer,Quotation,QuotationItem,Product,Category,CashSale,CashSaleItem,Receipt,ReceiptItem
 
 # Register your models here.
 
@@ -10,20 +10,46 @@ class CustomerAdmin(admin.ModelAdmin):
 admin.site.register(Customer, CustomerAdmin)
 
 
+# class QuotationItemInline(admin.TabularInline):
+#     model = QuotationItem
+#     extra = 1
+
+# @admin.action(description='รีเซ็ตสถานะกลับเป็นรออนุมัติ')
+# def reset_status(modeladmin, request, queryset):
+#     updated_count = queryset.update(status='pending')
+#     modeladmin.message_user(request, f"รีเซ็ตสถานะ {updated_count} รายการ เป็น 'รออนุมัติ' แล้ว")
+
+# class QuotationAdmin(admin.ModelAdmin):
+#     list_display = ('quotation_date','id', 'customer', 'total_amount' ,'status')
+#     list_editable = ('status',)
+#     search_fields = ('customer__name',)
+#     list_filter = ('status',)
+#     inlines = [QuotationItemInline]
+#     readonly_fields = ['total_amount']
+#     actions = [reset_status]  # เพิ่ม action สำหรับรีเซ็ตสถานะ
+
+#     def get_changeform_initial_data(self, request):
+#         return {'status': 'pending'}  # ตั้งค่าเริ่มต้นเป็น pending
+
 class QuotationItemInline(admin.TabularInline):
     model = QuotationItem
     extra = 1
 
+@admin.action(description='รีเซ็ตสถานะกลับเป็นรออนุมัติ')
+def reset_status(modeladmin, request, queryset):
+    updated_count = queryset.update(status='pending')
+    modeladmin.message_user(request, f"รีเซ็ตสถานะ {updated_count} รายการ เป็น 'รออนุมัติ' แล้ว")
+
 class QuotationAdmin(admin.ModelAdmin):
-    list_display = ('quotation_date','id', 'customer', 'total_amount' ,'status')
-    search_fields = ('customer__name',)
+    list_display = ('quotation_date', 'id', 'customer', 'total_amount', 'status')
+    list_editable = ('status',)
+    search_fields = ('customer__name_th',)  # แก้ให้ตรง field
     list_filter = ('status',)
     inlines = [QuotationItemInline]
-    readonly_fields = ['total_amount']  # ให้แสดงยอดรวมแต่แก้ไขไม่ได้
+    readonly_fields = ['total_amount']
+    actions = [reset_status]
 
-    def get_changeform_initial_data(self, request):
-        return {'status': 'pending'}  # ตั้งค่าเริ่มต้นเป็น pending
-     
+
 
 admin.site.register(Quotation, QuotationAdmin)
 admin.site.register(QuotationItem)
@@ -34,7 +60,59 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('category',)
 
 admin.site.register(Product, ProductAdmin)
-admin.site.register(Receipt)
 
-admin.site.register(CashSale)
+
+# Inline สำหรับแสดง ReceiptItem ในหน้า Receipt
+class ReceiptItemInline(admin.TabularInline):
+    model = ReceiptItem
+    extra = 1
+    readonly_fields = ('total_price',)
+    fields = ('product', 'quantity', 'price_per_unit', 'total_price',)
+
+    def total_price(self, obj):
+        return obj.total_price
+    total_price.short_description = 'ราคารวม'
+
+# Register Receipt พร้อม inline ReceiptItem
+@admin.register(Receipt)
+class ReceiptAdmin(admin.ModelAdmin):
+    list_display = ('receipt_date', 'customer', 'total_amount', 'payment_method')
+    inlines = [ReceiptItemInline]
+    search_fields = ('customer__name_th',)
+    list_filter = ('payment_method',)
+    readonly_fields = ('total_amount',)
+
+# (ถ้าอยากให้ ReceiptItem แก้ไขแยกเดี่ยวได้ด้วย)
+@admin.register(ReceiptItem)
+class ReceiptItemAdmin(admin.ModelAdmin):
+    list_display = ('receipt', 'product', 'quantity', 'price_per_unit', 'total_price')
+    search_fields = ('receipt__customer__name_th', 'product__name',)
+
+    def total_price_display(self, obj):
+        return obj.total_price
+    total_price_display.short_description = 'ราคารวม'
+    
+
+class CashSaleItemInline(admin.TabularInline):
+    model = CashSaleItem
+    extra = 1  # จำนวนแถวเปล่าๆ ตอนเพิ่มรายการใหม่
+    readonly_fields = ('total_price_display',)
+    fields = ('product', 'quantity', 'price_per_unit', 'total_price_display')
+
+    def total_price_display(self, obj):
+        if obj.pk:
+            return f"{obj.total_price:.2f} ฿"
+        return "-"
+    total_price_display.short_description = 'ราคารวม'
+
+@admin.register(CashSale)
+class CashSaleAdmin(admin.ModelAdmin):
+    list_display = ('id', 'cash_sale_date', 'customer', 'total_amount_display', 'payment_method')
+    inlines = [CashSaleItemInline]
+
+    def total_amount_display(self, obj):
+        return f"{obj.total_amount:.2f} ฿"
+    total_amount_display.short_description = 'ยอดรวม'
+
+
 admin.site.register(Category)

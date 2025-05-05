@@ -24,55 +24,65 @@ class Receipt(models.Model):
     
     invoice = models.ForeignKey('Invoice', on_delete=models.CASCADE, related_name='receipts', null=True, blank=True)
     quotation = models.ForeignKey('Quotation', on_delete=models.SET_NULL, null=True, blank=True, related_name='receipts')
-    customer = models.ForeignKey('customer', on_delete=models.CASCADE, related_name='receipts')
+    customer = models.ForeignKey('customer', on_delete=models.CASCADE, related_name='receipts', null=True, blank=True)
     receipt_date = models.DateField(null=True, blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=50)
 
+    def calculate_total_amount(self):
+        """คำนวณราคารวมจาก ReceiptItem ทั้งหมด"""
+        total = sum(item.total_price for item in self.items.all())
+        return total
+
+    def save(self, *args, **kwargs):
+        if self.quotation and not self.customer:
+            self.customer = self.quotation.customer
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.receipt_date} | {(self.customer.name_th if self.customer else 'ไม่มีลูกค้า')} | {self.total_amount} | {self.payment_method}"
-        # return {self.receipt_date,self.id,self.customer,self.total_amount,self.payment_method}
+
     
 class ReceiptItem(models.Model):
-    receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE, related_name='items')
+    receipt = models.ForeignKey(Receipt, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def total_price(self):
+        qty = self.quantity or 0
+        price = self.price_per_unit or 0
+        return qty * price
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.receipt.save()  # ให้ Receipt คำนวณยอดรวมใหม่
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.receipt.save()  # ให้ Receipt คำนวณยอดรวมใหม่
+
     def __str__(self):
-        return f"{self.product.name} - {self.quantity} units"
-    
-    class Meta:
-        unique_together = ('receipt', 'product')
+        return f"{self.product.name} x{self.quantity} ราคาต่อหน่วย = {self.price_per_unit}฿"
 
 
 class Quotation(models.Model):
     STATUS_CHOICES = [
-        ('sent', _('ส่งแล้ว')),
         ('pending', 'รออนุมัติ'),
-        ('approved', _('ดำเนินการแล้ว')),
-        ('Not approved', _('ไม่ได้รับการอนุมัติ')),
-        ('converted', _('แปลงเป็นใบเสร็จรับเงิน')),
+        ('approved', 'อนุมัติ'),
+        ('Not approved', 'ไม่ได้รับการอนุมัติ'),
+        ('converted', 'แปลงเป็นใบเสร็จรับเงิน'),
+        ('reset', 'รีเซ็ต'),
     ]
 
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='pending',  # ตั้งค่าสถานะเริ่มต้นเป็น 'pending'
-    )
-
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending') 
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     quotation_date = models.DateField(null=True, blank=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("วันที่สร้าง"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("วันที่อัปเดต"))
-
-    def save(self, *args, **kwargs):
-        # ถ้า status เป็น approved → เปลี่ยนเป็น 'ดำเนินการแล้ว'
-        if self.status == 'approved':
-            self.status = 'ดำเนินการแล้ว'
-        super().save(*args, **kwargs)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="วันที่สร้าง")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="วันที่อัปเดต")
 
     def update_total_amount(self):
         total = sum(item.total_price for item in self.items.all())
@@ -83,7 +93,8 @@ class Quotation(models.Model):
         return f"[{self.quotation_date}] ลูกค้า: {self.customer.name_th} | ยอดรวม: ฿{self.total_amount} | สถานะ: {self.status}"
 
     class Meta:
-        ordering = ['id'] 
+        ordering = ['id']
+
 
 class Product(models.Model):
     category = models.ForeignKey('Category', on_delete=models.CASCADE)
@@ -171,13 +182,26 @@ class CashSale(models.Model):
     ('transfer', _('โอน')),
     ]
 
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='cash_sales')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='cash_sales', null=True, blank=True)
     cash_sale_date = models.DateField(null=True, blank=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=50)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_method = models.CharField(
+    max_length=20,
+    choices=PAYMENT_METHOD_CHOICES,
+    default='cash',
+    )
+
+    @property
+    def total_amount(self):
+        return sum(item.total_price for item in self.items.all()) or 0
+
+    # @property
+    # def total_amount(self):
+    #     """รวมราคาทุกรายการในใบขายสด"""
+    #     return sum(item.total_price for item in self.items.all())
 
     def __str__(self):
-        return  self.cash_sale_date,self.id,self.customer,self.total_amount,self.payment_method
+          return f"{self.cash_sale_date} | {(self.customer.name_th if self.customer else 'ไม่มีลูกค้า')} | {self.total_amount}฿"
     
 class CashSaleItem(models.Model):
     cash_sale = models.ForeignKey(CashSale, related_name='items', on_delete=models.CASCADE)
@@ -185,8 +209,26 @@ class CashSaleItem(models.Model):
     quantity = models.PositiveIntegerField()
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
 
+    @property
+    def total_price(self):
+        """คำนวณราคารวมของรายการนี้"""
+        if self.quantity and self.price_per_unit:
+            return self.quantity * self.price_per_unit
+        return 0
+
+    def clean(self):
+        # ตรวจสอบว่าสินค้าในสต็อกเพียงพอ
+        if self.quantity > self.product.stock_quantity:
+            raise ValidationError('สินค้าในสต็อกไม่เพียงพอ')
+
+    def save(self, *args, **kwargs):
+        # ใส่ราคาต่อหน่วยอัตโนมัติถ้ายังไม่มี
+        if not self.price_per_unit:
+            self.price_per_unit = self.product.price
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.product.name} x {self.quantity}"
+        return f"{self.product.name} x{self.quantity} ราคาต่อหน่วย = {self.price_per_unit}฿"
 
 
 
