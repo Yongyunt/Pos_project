@@ -1,58 +1,30 @@
 from django.contrib import admin
 from pos_api.models import Customer,Quotation,QuotationItem,Product,Category,CashSale,CashSaleItem,Receipt,ReceiptItem
 
-# Register your models here.
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('name_th','address','phone_number')
+    list_display = ('id','name_th','address','phone_number')
     search_fields = ('name_th',)
 
 admin.site.register(Customer, CustomerAdmin)
 
 
-# class QuotationItemInline(admin.TabularInline):
-#     model = QuotationItem
-#     extra = 1
-
-# @admin.action(description='รีเซ็ตสถานะกลับเป็นรออนุมัติ')
-# def reset_status(modeladmin, request, queryset):
-#     updated_count = queryset.update(status='pending')
-#     modeladmin.message_user(request, f"รีเซ็ตสถานะ {updated_count} รายการ เป็น 'รออนุมัติ' แล้ว")
-
-# class QuotationAdmin(admin.ModelAdmin):
-#     list_display = ('quotation_date','id', 'customer', 'total_amount' ,'status')
-#     list_editable = ('status',)
-#     search_fields = ('customer__name',)
-#     list_filter = ('status',)
-#     inlines = [QuotationItemInline]
-#     readonly_fields = ['total_amount']
-#     actions = [reset_status]  # เพิ่ม action สำหรับรีเซ็ตสถานะ
-
-#     def get_changeform_initial_data(self, request):
-#         return {'status': 'pending'}  # ตั้งค่าเริ่มต้นเป็น pending
-
 class QuotationItemInline(admin.TabularInline):
     model = QuotationItem
     extra = 1
 
-@admin.action(description='รีเซ็ตสถานะกลับเป็นรออนุมัติ')
-def reset_status(modeladmin, request, queryset):
-    updated_count = queryset.update(status='pending')
-    modeladmin.message_user(request, f"รีเซ็ตสถานะ {updated_count} รายการ เป็น 'รออนุมัติ' แล้ว")
-
 class QuotationAdmin(admin.ModelAdmin):
     list_display = ('quotation_date', 'id', 'customer', 'total_amount', 'status')
-    list_editable = ('status',)
     search_fields = ('customer__name_th',)  # แก้ให้ตรง field
     list_filter = ('status',)
+    list_editable = ('status',)
     inlines = [QuotationItemInline]
     readonly_fields = ['total_amount']
-    actions = [reset_status]
-
 
 
 admin.site.register(Quotation, QuotationAdmin)
 admin.site.register(QuotationItem)
+
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'unit_price', 'stock_quantity', 'category')
@@ -76,10 +48,11 @@ class ReceiptItemInline(admin.TabularInline):
 # Register Receipt พร้อม inline ReceiptItem
 @admin.register(Receipt)
 class ReceiptAdmin(admin.ModelAdmin):
-    list_display = ('receipt_date', 'customer', 'total_amount', 'payment_method')
+    list_display = ('id','receipt_date', 'customer', 'total_amount', 'payment_method')
     inlines = [ReceiptItemInline]
     search_fields = ('customer__name_th',)
     list_filter = ('payment_method',)
+    list_editable = ('payment_method',)
     readonly_fields = ('total_amount',)
 
 # (ถ้าอยากให้ ReceiptItem แก้ไขแยกเดี่ยวได้ด้วย)
@@ -95,7 +68,7 @@ class ReceiptItemAdmin(admin.ModelAdmin):
 
 class CashSaleItemInline(admin.TabularInline):
     model = CashSaleItem
-    extra = 1  # จำนวนแถวเปล่าๆ ตอนเพิ่มรายการใหม่
+    extra = 1
     readonly_fields = ('total_price_display',)
     fields = ('product', 'quantity', 'price_per_unit', 'total_price_display')
 
@@ -107,12 +80,17 @@ class CashSaleItemInline(admin.TabularInline):
 
 @admin.register(CashSale)
 class CashSaleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cash_sale_date', 'customer', 'total_amount_display', 'payment_method')
+    list_display = ('id', 'cash_sale_date', 'customer', 'calculated_total_amount_display', 'payment_method')
     inlines = [CashSaleItemInline]
 
-    def total_amount_display(self, obj):
-        return f"{obj.total_amount:.2f} ฿"
-    total_amount_display.short_description = 'ยอดรวม'
+    def calculated_total_amount_display(self, obj):
+        return f"{obj.calculated_total_amount:.2f} ฿"
+    calculated_total_amount_display.short_description = 'ยอดรวม'
 
 
-admin.site.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'category_name')
+    search_fields = ('name',)
+
+admin.site.register(Category, CategoryAdmin)
+
