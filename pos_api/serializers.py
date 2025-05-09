@@ -31,12 +31,30 @@ class QuotationItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'quotation', 'product', 'quantity', 'price_per_unit', 'total_price']
         read_only_fields = ['total_price']
 
-# เช็คว่า product มีอยู่ใน quotation item หรือไม่
     def validate(self, data):
         product = data.get('product')
+        quantity = data.get('quantity', 0)
+
+        # เช็คราคา default จาก product
         if product and not data.get('price_per_unit'):
             data['price_per_unit'] = product.price
+
+        # เช็คว่า quantity ต้องมากกว่า 0
+        if quantity <= 0:
+            raise serializers.ValidationError({"quantity": "Quantity must be greater than 0"})
+
         return data
+
+    def create(self, validated_data):
+        validated_data['total_price'] = validated_data['quantity'] * validated_data['price_per_unit']
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        instance.quantity = validated_data.get('quantity', instance.quantity)
+        instance.price_per_unit = validated_data.get('price_per_unit', instance.price_per_unit)
+        instance.total_price = instance.quantity * instance.price_per_unit
+        instance.save()
+        return instance
     
 
 class QuotationSerializer(serializers.ModelSerializer):
@@ -46,35 +64,70 @@ class QuotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quotation
         fields = ['id', 'customer', 'quotation_date', 'total_amount', 'created_at', 'updated_at', 'items']
+        read_only_fields = ['total_amount']  # ❗️แนะนำให้เป็น read_only
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         quotation = Quotation.objects.create(**validated_data)
-        for item in items_data:
-            QuotationItem.objects.create(quotation=quotation, **item)
+
+        total_amount = 0
+        for item_data in items_data:
+            item = QuotationItem.objects.create(quotation=quotation, **item_data)
+            total_amount += item.total_price
+
+        quotation.total_amount = total_amount
+        quotation.save()
         return quotation
 
     def update(self, instance, validated_data):
         items_data = validated_data.pop('items')
         instance.customer = validated_data.get('customer', instance.customer)
         instance.quotation_date = validated_data.get('quotation_date', instance.quotation_date)
-        instance.total_amount = validated_data.get('total_amount', instance.total_amount)
         instance.save()
 
         # clear old items and recreate
         instance.items.all().delete()
-        for item in items_data:
-            QuotationItem.objects.create(quotation=instance, **item)
 
+        total_amount = 0
+        for item_data in items_data:
+            item = QuotationItem.objects.create(quotation=instance, **item_data)
+            total_amount += item.total_price
+
+        instance.total_amount = total_amount
+        instance.save()
         return instance
 
 
-class InvoiceItemSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
+class InvoiceItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceItem
-        fields = ['id', 'product', 'quantity', 'price_per_unit']
+        fields = ['id', 'invoice', 'product', 'quantity', 'price_per_unit', 'total_price']
+        read_only_fields = ['total_price']
+
+    def validate(self, data):
+        product = data.get('product')
+        quantity = data.get('quantity', 0)
+
+        if product and not data.get('price_per_unit'):
+            data['price_per_unit'] = product.price
+
+        if quantity <= 0:
+            raise serializers.ValidationError({"quantity": "Quantity must be greater than 0"})
+
+        return data
+
+    def create(self, validated_data):
+        validated_data['total_price'] = validated_data['quantity'] * validated_data['price_per_unit']
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        instance.quantity = validated_data.get('quantity', instance.quantity)
+        instance.price_per_unit = validated_data.get('price_per_unit', instance.price_per_unit)
+        instance.total_price = instance.quantity * instance.price_per_unit
+        instance.save()
+        return instance
+
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -111,11 +164,35 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
 class CashSaleItemSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
-
     class Meta:
         model = CashSaleItem
-        fields = ['id', 'product', 'quantity', 'price_per_unit']
+        fields = ['id', 'cash_sale', 'product', 'quantity', 'price_per_unit', 'total_price']
+        read_only_fields = ['total_price']
+
+    def validate(self, data):
+        product = data.get('product')
+        quantity = data.get('quantity', 0)
+
+        # ถ้าไม่ส่ง price_per_unit → ใช้ราคาจาก product อัตโนมัติ
+        if product and not data.get('price_per_unit'):
+            data['price_per_unit'] = product.price
+
+        # quantity ต้อง > 0
+        if quantity <= 0:
+            raise serializers.ValidationError({"quantity": "Quantity must be greater than 0"})
+
+        return data
+
+    def create(self, validated_data):
+        validated_data['total_price'] = validated_data['quantity'] * validated_data['price_per_unit']
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        instance.quantity = validated_data.get('quantity', instance.quantity)
+        instance.price_per_unit = validated_data.get('price_per_unit', instance.price_per_unit)
+        instance.total_price = instance.quantity * instance.price_per_unit
+        instance.save()
+        return instance
 
 
 class CashSaleSerializer(serializers.ModelSerializer):
@@ -125,26 +202,38 @@ class CashSaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CashSale
         fields = ['id', 'customer', 'cash_sale_date', 'total_amount', 'payment_method', 'items']
+        read_only_fields = ['total_amount']
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         cash_sale = CashSale.objects.create(**validated_data)
+
+        total_amount = 0
         for item in items_data:
-            CashSaleItem.objects.create(cash_sale=cash_sale, **item)
+            item_obj = CashSaleItem.objects.create(cash_sale=cash_sale, **item)
+            total_amount += item_obj.total_price
+
+        cash_sale.total_amount = total_amount
+        cash_sale.save()
         return cash_sale
 
     def update(self, instance, validated_data):
-        items_data = validated_data.pop('items')
+        items_data = validated_data.pop('items', None)
+
         instance.customer = validated_data.get('customer', instance.customer)
         instance.cash_sale_date = validated_data.get('cash_sale_date', instance.cash_sale_date)
-        instance.total_amount = validated_data.get('total_amount', instance.total_amount)
         instance.payment_method = validated_data.get('payment_method', instance.payment_method)
         instance.save()
 
-        # clear old items and recreate
-        instance.items.all().delete()
-        for item in items_data:
-            CashSaleItem.objects.create(cash_sale=instance, **item)
+        total_amount = 0
+        if items_data is not None:
+            instance.items.all().delete()
+            for item in items_data:
+                item_obj = CashSaleItem.objects.create(cash_sale=instance, **item)
+                total_amount += item_obj.total_price
+
+            instance.total_amount = total_amount
+            instance.save()
 
         return instance
 

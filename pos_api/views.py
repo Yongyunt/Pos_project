@@ -20,7 +20,7 @@ def convert_to_receipt(self, request, pk=None):
     if quotation.customer is None:
         return Response({'detail': 'ใบเสนอราคานี้ยังไม่มีลูกค้า กรุณาเพิ่มลูกค้าก่อนแปลง'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # สร้าง Receipt
+    # สร้างใบเสร็จ
     receipt = Receipt.objects.create(
         quotation=quotation,
         customer=quotation.customer,
@@ -29,18 +29,19 @@ def convert_to_receipt(self, request, pk=None):
         payment_method='cash',
     )
 
-    # ดึงรายการสินค้าในใบเสนอราคา
+    # ดึงรายการจาก QuotationItem
     quotation_items = QuotationItem.objects.filter(quotation=quotation)
 
-    # ก๊อปปี้ QuotationItem → ReceiptItem
+    # คัดลอก QuotationItem ไปเป็น ReceiptItem
     for item in quotation_items:
         ReceiptItem.objects.create(
             receipt=receipt,
             product=item.product,
             quantity=item.quantity,
-            unit_price=item.unit_price,
+            price_per_unit=item.price_per_unit,
         )
 
+    # ส่งคืนข้อมูลใบเสร็จ
     serializer = ReceiptSerializer(receipt)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
