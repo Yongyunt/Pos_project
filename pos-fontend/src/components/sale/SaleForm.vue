@@ -44,10 +44,10 @@
     <!-- <input class="form-control mb-2" /> -->
     <!-- <label class="form-label">รายละเอียด</label> -->
     <!-- <input class="form-control mb-2" /> -->
-    <label class="form-label">คลังสินค้า</label>
+    <!-- <label class="form-label">คลังสินค้า</label>
     <select class="form-select mb-2">
       <option>คลังสินค้า</option>
-    </select>
+    </select> -->
     <!-- ตารางสินค้า -->
     <div class="table-responsive mt-3">
       <table class="table table-bordered align-middle">

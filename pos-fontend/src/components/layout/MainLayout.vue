@@ -8,7 +8,7 @@
 
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ 'sidebar-open': isSidebarOpen }">
-      <div class="sidebar-header">POS ระบบขาย</div>
+      <div class="sidebar-header">Posify ระบบขาย</div>
       <nav>
         <router-link
           v-for="(item, index) in menuItems"
