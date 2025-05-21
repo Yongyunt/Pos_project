@@ -67,7 +67,7 @@ const menuItems = [
   { id: 'receipts', name: 'ใบเสร็จรับเงิน', path: '/receipts', icon: 'ReceiptIcon' },
   { id: 'cash-sale', name: 'ขายเงินสด', path: '/cash-sale', icon: 'CashIcon' },
   { id: 'products', name: 'สินค้า', path: '/products', icon: 'CubeIcon' },
-  { id: 'customers', name: 'ลูกค้า', path: '/customers', icon: 'UserGroupIcon' },
+  { id: 'contactbook', name: 'สมุดรายชื่อ', path: '/contactbook', icon: 'UserGroupIcon' },
   { id: 'reports', name: 'รายงาน', path: '/reports', icon: 'ChartBarIcon' },
 ]
 

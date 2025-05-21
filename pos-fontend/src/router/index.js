@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import CashSalePage from '../pages/CashSalePage.vue'
 import Dashboard from '../pages/Dashboard.vue'
-import CustomersPage from '../pages/CustomersPage.vue'
-import CustomerFormPage from '../pages/CustomerFormPage.vue'
+import Contactbook from '../pages/ContactBook.vue'
+import ContactBookFormPage from '../pages/ContactBookFormPage.vue'
 
 const routes = [
   {
@@ -16,14 +16,14 @@ const routes = [
     component: CashSalePage,
   },
   {
-    path: '/customers',
-    name: 'Customers',
-    component: CustomersPage,
+    path: '/contactbook',
+    name: 'Contactbook',
+    component: Contactbook,
   },
   {
-    path: '/customers/new',
-    name: 'CustomerForm',
-    component: CustomerFormPage,
+    path: '/contactbook/new',
+    name: 'ContactBookForm',
+    component: ContactBookFormPage,
   },
 ]
 

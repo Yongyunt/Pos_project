@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 class Customer(models.Model):
     name_th = models.CharField(max_length=150)
     name_en = models.CharField(max_length=150)
+    nationality = models.CharField(max_length=150,default='Unknown')
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     line_id = models.CharField(max_length=255, blank=True, null=True)
     viber_phone = models.CharField(max_length=15, blank=True, null=True)

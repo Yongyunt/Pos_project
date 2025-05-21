@@ -3,7 +3,7 @@ from pos_api.models import Customer,Quotation,QuotationItem,Product,Category,Cas
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('id','name_th','address','phone_number')
+    list_display = ('id','name_th','nationality','address','phone_number')
     search_fields = ('name_th',)
 
 admin.site.register(Customer, CustomerAdmin)
@@ -15,7 +15,7 @@ class QuotationItemInline(admin.TabularInline):
 
 class QuotationAdmin(admin.ModelAdmin):
     list_display = ('quotation_date', 'id', 'customer', 'total_amount', 'status')
-    search_fields = ('customer__name_th',)  # แก้ให้ตรง field
+    search_fields = ('customer__name_th',)  
     list_filter = ('status',)
     list_editable = ('status',)
     inlines = [QuotationItemInline]

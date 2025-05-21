@@ -105,7 +105,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 // import { ElIcon, ElButton, ElTable, ... } from 'element-plus'
@@ -114,25 +114,24 @@ const activeTab = ref('all')
 const search = ref('')
 const router = useRouter()
 
-function importData() {
-  // TODO: implement import logic
-}
 function openSaleForm() {
-  router.push('/customers/new')
+  router.push('/contactbook/new')
 }
-function editCustomer(_name) {
+function editCustomer(name: string) {
   // TODO: implement edit logic for customer with the given name
+  console.log('Editing customer:', name)
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
 
 .page-bg {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5fafd 0%, #e3f0ff 100%);
   padding: 32px 0;
   font-family: 'Prompt', sans-serif;
+  letter-spacing: 0.3px;
 }
 .main-card {
   max-width: 950px;
@@ -204,38 +203,45 @@ function editCustomer(_name) {
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 400;
 }
 .customer-table thead th {
   position: sticky;
   top: 0;
   background: #eaf6ff;
-  color: #3a4a5d;
-  font-weight: 600;
+  color: #2b4a6d;
+  font-weight: 500;
   padding: 12px 10px;
   border-bottom: 2px solid #d2e6fa;
   z-index: 2;
+  letter-spacing: 0.4px;
 }
 .customer-table td {
   padding: 12px 10px;
   border-bottom: 1px solid #f0f4f8;
   background: #fff;
   transition: background 0.15s;
+  color: #1a2533;
+  font-weight: 400;
+  opacity: 1;
 }
 .customer-table tr:hover td {
   background: #f4faff;
 }
 .group-row td {
   background: #eaf6ff;
-  font-weight: bold;
-  color: #2b5d8c;
-  font-size: 17px;
+  font-weight: 500;
+  color: #1e4b7c;
+  font-size: 16px;
   border-bottom: 1px solid #d2e6fa;
+  letter-spacing: 0.4px;
 }
 .subtext {
-  color: #8ca0b3;
+  color: #6b7d8f;
   font-size: 13px;
   margin-left: 2px;
+  font-weight: 300;
 }
 .row-action {
   background: #f4f8fb;
@@ -257,9 +263,10 @@ function editCustomer(_name) {
   margin-right: 0.5rem;
 }
 h2 {
-  font-weight: 600;
-  color: #2b5d8c;
+  font-weight: 500;
+  color: #1e4b7c;
   margin-bottom: 0;
+  letter-spacing: 0.5px;
 }
 @media (max-width: 700px) {
   .main-card {
