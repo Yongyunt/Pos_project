@@ -45,9 +45,9 @@
               </select>
             </td>
             <td>
-              <button class="btn btn-light me-2">
+              <!-- <button class="btn btn-light me-2">
                 <i class="fas fa-ellipsis-h"></i>
-              </button>
+              </button> -->
               <button class="btn btn-danger" @click="deleteTransaction(item.id)">
                 <font-awesome-icon icon="trash" />
               </button>
@@ -81,7 +81,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import  SaleForm  from '../components/sale/SaleForm.vue'
+import SaleForm from '../components/sale/SaleForm.vue'
 
 interface Transaction {
   id: number;
@@ -95,7 +95,7 @@ interface Transaction {
 }
 
 export default defineComponent({
-  name: 'CashSalePage',
+  name: 'ProductsPage',
   components: { SaleForm },
   setup() {
     const showSaleForm = ref(false)
@@ -243,6 +243,20 @@ td:nth-child(4) {
   padding: 0.375rem 0.75rem;
 }
 
+/* Center the trash icon button */
+td:last-child {
+  text-align: center;
+}
+
+td:last-child .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
 /* Improve checkbox alignment */
 input[type="checkbox"] {
   width: 1.1rem;
@@ -270,3 +284,4 @@ input[type="checkbox"] {
   overflow-y: auto;
 }
 </style>
+

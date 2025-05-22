@@ -5,6 +5,12 @@ from .models import (
 )
 
 
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -16,12 +22,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = '__all__'
-
-
-class CustomerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Customer
         fields = '__all__'
 
 
@@ -98,7 +98,6 @@ class QuotationSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class InvoiceItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceItem
@@ -127,7 +126,6 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
         instance.total_price = instance.quantity * instance.price_per_unit
         instance.save()
         return instance
-
 
 
 class InvoiceSerializer(serializers.ModelSerializer):

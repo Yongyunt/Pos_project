@@ -1,51 +1,53 @@
 <template>
-  <div class="bg-white rounded shadow-sm p-5">
-    <div class="mb-4 d-flex justify-content-between align-items-center">
-      <h2 class="fs-4 fw-semibold mb-0">ใบแจ้งหนี้</h2>
-      <button class="btn btn-primary fs-5 px-4 py-2">สร้างใบแจ้งหนี้ใหม่</button>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-bordered align-middle fs-5">
-        <thead class="table-light">
-          <tr>
-            <th>เลขที่</th>
-            <th>วันที่</th>
-            <th>ลูกค้า</th>
-            <th>ยอดรวม</th>
-            <th>สถานะ</th>
-            <th>การจัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="invoice in invoices" :key="invoice.id">
-            <td>{{ invoice.id }}</td>
-            <td>{{ invoice.date }}</td>
-            <td>{{ invoice.customer }}</td>
-            <td>฿{{ invoice.total.toFixed(2) }}</td>
-            <td>
-              <span :class="['badge fs-6',
-                invoice.status === 'รอชำระ' ? 'bg-warning text-dark' :
-                invoice.status === 'ชำระแล้ว' ? 'bg-success' :
-                'bg-danger']">
-                {{ invoice.status }}
-              </span>
-            </td>
-            <td>
-              <div class="d-flex gap-2">
-                <button class="btn btn-light btn-sm">
-                  <eye-icon style="width: 16px; height: 16px;" />
-                </button>
-                <button class="btn btn-light btn-sm">
-                  <pencil-icon style="width: 16px; height: 16px;" />
-                </button>
-                <button class="btn btn-light btn-sm">
-                  <trash-icon style="width: 16px; height: 16px;" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="page-bg">
+    <div class="main-card">
+      <div class="header-bar">
+        <h2>ใบแจ้งหนี้</h2>
+        <button class="btn btn-success">สร้างใบแจ้งหนี้ใหม่</button>
+      </div>
+      <div class="table-container">
+        <table class="table table-bordered align-middle">
+          <thead>
+            <tr>
+              <th>เลขที่</th>
+              <th>วันที่</th>
+              <th>ลูกค้า</th>
+              <th>ยอดรวม</th>
+              <th>สถานะ</th>
+              <th>การจัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="invoice in invoices" :key="invoice.id">
+              <td>{{ invoice.id }}</td>
+              <td>{{ invoice.date }}</td>
+              <td>{{ invoice.customer }}</td>
+              <td>฿{{ invoice.total.toFixed(2) }}</td>
+              <td>
+                <span :class="['badge fs-6',
+                  invoice.status === 'รอชำระ' ? 'bg-warning text-dark' :
+                  invoice.status === 'ชำระแล้ว' ? 'bg-success' :
+                  'bg-danger']">
+                  {{ invoice.status }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-light btn-sm">
+                    <eye-icon style="width: 16px; height: 16px;" />
+                  </button>
+                  <button class="btn btn-light btn-sm">
+                    <pencil-icon style="width: 16px; height: 16px;" />
+                  </button>
+                  <button class="btn btn-light btn-sm">
+                    <trash-icon style="width: 16px; height: 16px;" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>

@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { PackageIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { TrashIcon } from '@heroicons/vue/24/outline'
 
 interface Product {
   id: number

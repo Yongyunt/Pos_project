@@ -1,9 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import SalesPage from '../pages/SalesPage.vue'
 import QuotationsPage from '../pages/QuotationsPage.vue'
 import InvoicesPage from '../pages/InvoicesPage.vue'
 import ReceiptsPage from '../pages/ReceiptsPage.vue'
-import CashSalePage from '../pages/CashSalePage.vue'
+import SalesPage from '../pages/SalesPage.vue'
+import Dashboard from '../pages/DashboardPage.vue'
+import ProductsPage from '../pages/ProductsPage.vue'
+import ContactBook from '../pages/ContactBook.vue'
+import ContactBookFormPage from '../pages/ContactBookFormPage.vue'
+import ReportsPage from '../pages/ReportsPage.vue'
+
 
 const router = createRouter({
   history: createWebHistory(),
@@ -33,10 +38,30 @@ const router = createRouter({
       component: ReceiptsPage
     },
     {
-      path: '/cash-sale',
-      name: 'cash-sale',
-      component: CashSalePage
+      path: '/products',
+      name: 'products',
+      component: ProductsPage
     },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: Dashboard
+    },
+    {
+      path: '/contactbook',
+      name: 'contactbook',
+      component: ContactBook
+    },
+    {
+      path: '/contactbook/form',
+      name: 'contactbook-form',
+      component: ContactBookFormPage
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: ReportsPage
+    }
   ]
 })
 

@@ -1,8 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import CashSalePage from '../pages/CashSalePage.vue'
-import Dashboard from '../pages/Dashboard.vue'
+import ProductsPage from '../pages/ProductsPage.vue'
 import Contactbook from '../pages/ContactBook.vue'
 import ContactBookFormPage from '../pages/ContactBookFormPage.vue'
+import QuotationsPage from '../pages/QuotationsPage.vue'
+import ReceiptsPage from '../pages/ReceiptsPage.vue'
+import SalesPage from '../pages/SalesPage.vue'
+import Dashboard from '../pages/DashboardPage.vue'
+
+
 
 const routes = [
   {
@@ -11,9 +16,9 @@ const routes = [
     component: Dashboard
   },
   {
-    path: '/cash-sale',
-    name: 'CashSale',
-    component: CashSalePage,
+    path: '/products',
+    name: 'Products',
+    component: ProductsPage,
   },
   {
     path: '/contactbook',
@@ -24,6 +29,21 @@ const routes = [
     path: '/contactbook/new',
     name: 'ContactBookForm',
     component: ContactBookFormPage,
+  },
+  {
+    path: '/quotations',
+    name: 'Quotations',
+    component: QuotationsPage,
+  },
+  {
+    path: '/receipts',
+    name: 'Receipts',
+    component: ReceiptsPage,
+  },
+  {
+    path: '/sales',
+    name: 'Sales',
+    component: SalesPage,
   },
 ]
 

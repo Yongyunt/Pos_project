@@ -6,7 +6,7 @@
       </div>
       <div>
         <button class="btn btn-outline-secondary me-2" @click="close">ปิดหน้าต่าง</button>
-        <button class="btn btn-success">บันทึกแล้วปิด</button>
+        <button class="btn btn-success" @click="submit">บันทึกแล้วปิด</button>
       </div>
     </div>
     <div class="row">
@@ -24,7 +24,7 @@
             <label class="form-check-label" for="type2">บุคคลธรรมดา</label>
           </div> -->
         </div>
-        <label class="form-label">ประเภท</label>
+        <!-- <label class="form-label">ประเภท</label> -->
         <!-- <div class="mb-2">
           <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" v-model="form.type" value="customer" id="customer">
@@ -35,6 +35,12 @@
             <label class="form-check-label" for="supplier">ลูกค้าประจำ</label>
           </div>
         </div> -->
+        <!-- <label class="form-label">รหัสผู้ติดต่อ</label>
+        <input class="form-control mb-2" v-model="form.code" /> -->
+        <label class="form-label">ชื่อลูกค้า(ภาษาไทย)</label>
+        <input class="form-control mb-2" v-model="form.businessName" placeholder="ตัวอย่างการกรอก: แดง" />
+        <label class="form-label">ชื่อลูกค้า(ภาษาอังกฤษ)</label>
+        <input class="form-control mb-2" v-model="form.english_name" placeholder="ตัวอย่างการกรอก:  John " />
         <label class="form-label">สัญชาติ</label>
         <div class="mb-2">
           <div class="form-check form-check-inline">
@@ -46,21 +52,23 @@
             <label class="form-check-label" for="zone2">พม่า</label>
           </div>
         </div>
-        <label class="form-label">รหัสผู้ติดต่อ</label>
-        <input class="form-control mb-2" v-model="form.code" />
-        <label class="form-label">ชื่อ-นามสกุล</label>
-        <input class="form-control mb-2" v-model="form.businessName" placeholder="ตัวอย่างการกรอก: นายสมชาย สมบูรณ์" />
+        <label class="form-label">เบอร์มือถือ</label>
+        <input class="form-control mb-2" v-model="form.mobile" type="tel" maxlength="10" @input="form.mobile = form.mobile.replace(/\D/g, '')" />
+        <label class="form-label">Line ID</label>
+        <input class="form-control mb-2" v-model="form.lineId" />
+        <label class="form-label">Viber Name </label>
+        <input class="form-control mb-2" v-model="form.viberPhone" />
         <!-- <label class="form-label">เลขผู้เสียภาษี</label> -->
         <!-- <input class="form-control mb-2" v-model="form.taxId" placeholder="ระบุเลขผู้เสียภาษี 10 - 13 หลัก" /> -->
         <label class="form-label">ที่อยู่</label>
         <textarea class="form-control mb-2" v-model="form.address" rows="2"></textarea>
-        <label class="form-label">รหัสไปรษณีย์</label>
+        <!-- <label class="form-label">รหัสไปรษณีย์</label>
         <input class="form-control mb-2" v-model="form.zip" />
         <label class="form-label">ที่อยู่สำหรับจัดส่ง</label>
-        <textarea class="form-control mb-2" v-model="form.shippingAddress" rows="2"></textarea>
+        <textarea class="form-control mb-2" v-model="form.shippingAddress" rows="2"><textarea> -->
       </div>
       <!-- Right Column -->
-      <div class="col-md-6">
+      <!-- <div class="col-md-6">
         <div class="section-title">รายละเอียดผู้ติดต่อ</div>
         <label class="form-label">ชื่อผู้ติดต่อ</label>
         <input class="form-control mb-2" v-model="form.contactName" />
@@ -108,13 +116,16 @@
         <input class="form-control mb-2" type="file" />
         <label class="form-label">โน้ต</label>
         <textarea class="form-control mb-2" v-model="form.note" rows="2"></textarea>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useContactFormStore } from '../stores/Contacts'
+
+const store = useContactFormStore()
 
 const form = ref({
   contactType: 'individual',
@@ -122,6 +133,7 @@ const form = ref({
   zone: 'thai',
   code: '',
   businessName: '',
+  english_name: '',
   taxId: '',
   officeType: 'main',
   address: '',
@@ -133,6 +145,8 @@ const form = ref({
   contactName: '',
   email: '',
   mobile: '',
+  lineId: '',
+  viberPhone: '',
   bank: '',
   bankAccount: '',
   bankBranch: '',
@@ -142,9 +156,19 @@ const form = ref({
   bankAddress: '',
   note: ''
 })
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const submit = () => {
+  console.log("Submitting form:", form)
+  store.submitForm()
+}
+
+
 
 function close() {
-  // TODO: implement close logic
+  router.push('/contactbook')
 }
 </script>
 

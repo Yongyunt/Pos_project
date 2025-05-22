@@ -12,6 +12,13 @@
         </div>
       </div>
 
+      <el-tabs v-model="activeTab" class="mb-2 pretty-tabs">
+        <el-tab-pane label="แสดงทั้งหมด" name="all" />
+        <el-tab-pane label="ลูกค้า" name="customer" />
+        <el-tab-pane label="ผู้จำหน่าย" name="supplier" />
+        <el-tab-pane label="ผู้จำหน่าย/ลูกค้า" name="both" />
+      </el-tabs>
+
       <el-input
         v-model="search"
         placeholder="ค้นหารายชื่อ หรือรหัสผู้ติดต่อ"
@@ -33,24 +40,99 @@
             </tr>
           </thead>
           <tbody>
-            <template v-for="(group, groupName) in groupContacts" :key="groupName">
-              <tr class="group-row">
-                <td colspan="6"><b>{{ groupName }}</b></td>
-              </tr>
-              <tr v-for="contact in group" :key="contact.name">
-                <td>{{ contact.name }}<br><span class="subtext">สำนักงานใหญ่</span></td>
-                <td>{{ contact.contactName }}</td>
-                <td>{{ contact.phone }}</td>
-                <td>{{ contact.email }}</td>
-                <td>{{ contact.type }}</td>
-                <td>
-                  <button class="btn btn-danger btn-sm me-1" @click="deleteContact(contact.name)">
-                    <font-awesome-icon icon="trash" />
-                  </button>
-                  <el-button icon="el-icon-more" circle size="small" class="row-action"></el-button>
-                </td>
-              </tr>
-            </template>
+            <tr class="group-row">
+              <td colspan="6"><b>Cash Sale / ขายเงินสด</b></td>
+            </tr>
+            <tr>
+              <td>ขายยย</td>
+              <td>แสน</td>
+              <td></td>
+              <td></td>
+              <td>ลูกค้า</td>
+              <td>
+                <el-button
+                  icon="el-icon-delete"
+                  type="danger"
+                  circle
+                  size="small"
+                  class="row-action"
+                  @click="deleteCustomer('ขายยย')"
+                ></el-button>
+                <el-button icon="el-icon-more" circle size="small" class="row-action"></el-button>
+              </td>
+            </tr>
+            <tr>
+              <td>นาย A<br><span class="subtext">สำนักงานใหญ่</span></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>ลูกค้า</td>
+              <td>
+                <el-button
+                  icon="el-icon-delete"
+                  type="danger"
+                  circle
+                  size="small"
+                  class="row-action"
+                  @click="deleteCustomer('นาย A')"
+                ></el-button>
+                <el-button icon="el-icon-more" circle size="small" class="row-action"></el-button>
+              </td>
+            </tr>
+            <tr>
+              <td>บี<br><span class="subtext">สำนักงานใหญ่</span></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>ลูกค้า</td>
+              <td>
+                <el-button
+                  icon="el-icon-delete"
+                  type="danger"
+                  circle
+                  size="small"
+                  class="row-action"
+                  @click="deleteCustomer('บี')"
+                ></el-button>
+                <el-button icon="el-icon-more" circle size="small" class="row-action"></el-button>
+              </td>
+            </tr>
+            <tr>
+              <td>แสน<br><span class="subtext">สำนักงานใหญ่</span></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>ลูกค้า</td>
+              <td>
+                <el-button
+                  icon="el-icon-delete"
+                  type="danger"
+                  circle
+                  size="small"
+                  class="row-action"
+                  @click="deleteCustomer('แสน')"
+                ></el-button>
+                <el-button icon="el-icon-more" circle size="small" class="row-action"></el-button>
+              </td>
+            </tr>
+            <tr>
+              <td>เอ<br><span class="subtext">สำนักงานใหญ่</span></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>ลูกค้า</td>
+              <td>
+                <el-button
+                  icon="el-icon-delete"
+                  type="danger"
+                  circle
+                  size="small"
+                  class="row-action"
+                  @click="deleteCustomer('เอ')"
+                ></el-button>
+                <el-button icon="el-icon-more" circle size="small" class="row-action"></el-button>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -59,45 +141,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 // import { ElIcon, ElButton, ElTable, ... } from 'element-plus'
 
-interface Contact {
-  name: string
-  contactName: string
-  phone: string
-  email: string
-  type: string
-  group: string
-}
-
-const contacts = ref<Contact[]>([])
-
+const activeTab = ref('all')
 const search = ref('')
 const router = useRouter()
 
 function openSaleForm() {
   router.push('/contactbook/new')
 }
-
-function deleteContact(name: string) {
-  if (confirm(`คุณต้องการลบรายชื่อ "${name}" ใช่หรือไม่?`)) {
-    contacts.value = contacts.value.filter(contact => contact.name !== name)
-  }
+function deleteCustomer(name: string) {
+  // TODO: implement delete logic for customer with the given name
+  console.log('Deleting customer:', name)
 }
-
-// Add computed property to group contacts
-const groupContacts = computed(() => {
-  const groups: { [key: string]: Contact[] } = {}
-  contacts.value.forEach(contact => {
-    if (!groups[contact.group]) {
-      groups[contact.group] = []
-    }
-    groups[contact.group].push(contact)
-  })
-  return groups
-})
 </script>
 
 <style scoped>
@@ -152,6 +210,12 @@ const groupContacts = computed(() => {
   background: #409eff;
   color: #fff;
   box-shadow: 0 4px 16px 0 #b3d8ff44;
+}
+.pretty-tabs {
+  background: #f4f8fb;
+  border-radius: 8px 8px 0 0;
+  padding: 0 8px;
+  margin-bottom: 0.5rem;
 }
 .pretty-search {
   border-radius: 8px;

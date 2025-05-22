@@ -7,10 +7,10 @@ from django.core.exceptions import ValidationError
 class Customer(models.Model):
     name_th = models.CharField(max_length=150)
     name_en = models.CharField(max_length=150)
-    nationality = models.CharField(max_length=150,default='Unknown')
+    nationality = models.CharField(max_length=2, choices=[('TH', 'ไทย'), ('MM', 'พม่า')])
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     line_id = models.CharField(max_length=255, blank=True, null=True)
-    viber_phone = models.CharField(max_length=15, blank=True, null=True)
+    viber_name = models.CharField(max_length=50, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
 
     def __str__(self):

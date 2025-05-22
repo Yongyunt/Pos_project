@@ -8,7 +8,7 @@
 
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ 'sidebar-open': isSidebarOpen }">
-      <div class="sidebar-header">Posify ระบบขาย</div>
+      <div class="sidebar-header">Posify </div>
       <nav>
         <router-link
           v-for="(item, index) in menuItems"
@@ -63,12 +63,12 @@ const closeSidebarOnMobile = () => {
 }
 
 const menuItems = [
+  { id: 'sales', name: 'การขาย', path: '/sales', icon: 'CubeIcon' },
   { id: 'quotations', name: 'ใบเสนอราคา', path: '/quotations', icon: 'DocumentTextIcon' },
   { id: 'receipts', name: 'ใบเสร็จรับเงิน', path: '/receipts', icon: 'ReceiptIcon' },
-  { id: 'cash-sale', name: 'ขายเงินสด', path: '/cash-sale', icon: 'CashIcon' },
-  { id: 'products', name: 'สินค้า', path: '/products', icon: 'CubeIcon' },
+  { id: 'products', name: 'สินค้า', path: '/products', icon: 'CashIcon' },
   { id: 'contactbook', name: 'สมุดรายชื่อ', path: '/contactbook', icon: 'UserGroupIcon' },
-  { id: 'reports', name: 'รายงาน', path: '/reports', icon: 'ChartBarIcon' },
+  // { id: 'reports', name: 'รายงาน', path: '/reports', icon: 'ChartBarIcon' },
 ]
 
 const currentDate = computed(() => {
@@ -144,7 +144,7 @@ export default {}
 }
 
 .sidebar-header {
-  padding: 2rem 1rem 1rem 1rem;
+  padding: 2rem 1rem 1rem 2rem;
   font-weight: bold;
   font-size: 2rem;
   border-bottom: 1px solid #444;

@@ -13,6 +13,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils import timezone
 
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+    
 @action(detail=True, methods=['post'])
 def convert_to_receipt(self, request, pk=None):
     quotation = self.get_object()
@@ -45,9 +51,6 @@ def convert_to_receipt(self, request, pk=None):
     serializer = ReceiptSerializer(receipt)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class CustomerViewSet(viewsets.ModelViewSet):
-    queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()

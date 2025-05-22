@@ -114,11 +114,8 @@
 </template>
 
 <script setup lang="ts">
-import { defineComponent, defineEmits } from 'vue'
+import { defineEmits } from 'vue'
 
-defineComponent({
-  name: 'SaleForm',
-})
 const emit = defineEmits(['close'])
 </script>
 
