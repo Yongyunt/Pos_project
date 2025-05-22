@@ -8,7 +8,8 @@ import ProductsPage from '../pages/ProductsPage.vue'
 import ContactBook from '../pages/ContactBook.vue'
 import ContactBookFormPage from '../pages/ContactBookFormPage.vue'
 import ReportsPage from '../pages/ReportsPage.vue'
-
+import QuotationsForm from '../pages/QuotationsForm.vue'
+import QuotationDetail from '../pages/QuotationDetail.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/quotations',
       name: 'quotations',
       component: QuotationsPage
+    },
+    {
+      path: '/quotations/new',
+      name: 'quotations-new',
+      component: () => import('../pages/QuotationsForm.vue')
     },
     {
       path: '/invoices',
@@ -61,6 +67,16 @@ const router = createRouter({
       path: '/reports',
       name: 'reports',
       component: ReportsPage
+    },
+    {
+      path: '/quotations/:id',
+      name: 'quotation-detail',
+      component: QuotationDetail
+    },
+    {
+      path: '/quotations/:id/edit',
+      name: 'quotation-edit',
+      component: QuotationsForm
     }
   ]
 })

@@ -3,7 +3,7 @@
     <div class="main-card">
       <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <h2 style="margin-bottom: 0; font-size: 2.2rem; font-weight: 700; color: #222; letter-spacing: 1px;">ใบเสนอราคา</h2>
-        <button class="btn btn-success" style="font-weight: 600; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 1.05rem;">สร้างใหม่</button>
+        <router-link to="/quotations/new" class="btn btn-success" style="font-weight: 600; border-radius: 8px; padding: 0.5rem 1.5rem; font-size: 1.05rem;">สร้างใหม่</router-link>
       </div>
       <div class="table-container">
         <table class="table table-bordered align-middle">
@@ -12,7 +12,7 @@
               <th style="width: 40px"><input type="checkbox" v-model="selectAll" @change="toggleAll" /></th>
               <th>วันที่</th>
               <th>เลขที่เอกสาร</th>
-              <th>ชื่อลูกค้า/ชื่อโปรเจ็ค</th>
+              <th>ชื่อลูกค้า</th>
               <th>ยอดรวมสุทธิ</th>
               <th>สถานะ</th>
               <th style="width: 60px"></th>
@@ -21,10 +21,14 @@
           <tbody>
             <tr v-for="quote in quotations" :key="quote.id">
               <td><input type="checkbox" v-model="selected" :value="quote.id" /></td>
-              <td>{{ formatDate(quote.date) }}</td>
-              <td>{{ quote.id }}</td>
+              <td>{{ formatDate(quote.quotation_date) }}</td>
+              <td>
+                <a href="#" @click.prevent="viewQuotationDetail(quote.id)" class="text-primary">
+                  {{ quote.id }}
+                </a>
+              </td>
               <td>{{ quote.customer }}</td>
-              <td>{{ formatNumber(quote.total) }}</td>
+              <td>{{ formatNumber(parseFloat(quote.total_amount)) }}</td>
               <td>
                 <select v-model="quote.status" class="form-select form-select-sm" style="min-width: 120px">
                   <option value="รออนุมัติ">รออนุมัติ</option>
@@ -32,7 +36,9 @@
                 </select>
               </td>
               <td>
-                <button class="btn btn-light btn-sm fs-5"><i class="fas fa-ellipsis-h"></i></button>
+                <button class="btn btn-danger btn-sm me-1" @click="deleteQuotation(quote.id)">
+                    <font-awesome-icon icon="trash" />
+                  </button>
               </td>
             </tr>
           </tbody>
@@ -43,42 +49,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useQuotationStore } from '../stores/quotation'
+import { useRouter } from 'vue-router'
 
-interface Quotation {
-  id: string
-  date: string
-  customer: string
-  total: number
-  status: string
+interface QuotationItem {
+  id: number
+  quotation: number
+  product: number
+  quantity: number
+  price_per_unit: string
+  total_price: number
 }
 
-const quotations = ref<Quotation[]>([
-  {
-    id: 'QT202505020002',
-    date: '2025-05-02',
-    customer: 'บี',
-    total: 100.00,
-    status: 'รออนุมัติ'
-  },
-  {
-    id: 'QT202505020001',
-    date: '2025-05-02',
-    customer: 'แสน',
-    total: 1400.00,
-    status: 'ดำเนินการแล้ว'
-  },
-  {
-    id: 'QT202504090001',
-    date: '2025-04-09',
-    customer: 'นาย A',
-    total: 990.00,
-    status: 'ดำเนินการแล้ว'
-  }
-])
+interface Quotation {
+  id: number
+  customer: number
+  quotation_date: string
+  total_amount: string
+  created_at: string
+  updated_at: string
+  items: QuotationItem[]
+  status?: string  // Optional status field
+}
 
-const selected = ref<string[]>([])
+const quotationStore = useQuotationStore()
+const router = useRouter()
+const quotations = ref<Quotation[]>([])
+const selected = ref<number[]>([])  // Changed to number[] since id is number
 const selectAll = ref(false)
+
+onMounted(async () => {
+  await quotationStore.getQuotations()
+  quotations.value = quotationStore.quotations.map((quote: Quotation) => ({
+    ...quote,
+    status: 'รออนุมัติ'  // Set default status
+  }))
+})
 
 function toggleAll() {
   if (selectAll.value) {
@@ -89,13 +96,30 @@ function toggleAll() {
 }
 
 function formatDate(date: string) {
-  // Format YYYY-MM-DD to DD-MM-YYYY
-  const [y, m, d] = date.split('-')
-  return `${d}-${m}-${y}`
+  if (!date) return '-'
+  try {
+    // Format YYYY-MM-DD to DD-MM-YYYY
+    const [y, m, d] = date.split('-')
+    if (!y || !m || !d) return '-'
+    return `${d}-${m}-${y}`
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return '-'
+  }
 }
 
 function formatNumber(num: number) {
   return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function deleteQuotation(id: number) {
+  if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
+    quotations.value = quotations.value.filter(quote => quote.id !== id)
+  }
+}
+
+function viewQuotationDetail(id: number) {
+  router.push(`/quotations/${id}`)
 }
 </script>
 

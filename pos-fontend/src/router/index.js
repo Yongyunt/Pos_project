@@ -6,7 +6,8 @@ import QuotationsPage from '../pages/QuotationsPage.vue'
 import ReceiptsPage from '../pages/ReceiptsPage.vue'
 import SalesPage from '../pages/SalesPage.vue'
 import Dashboard from '../pages/DashboardPage.vue'
-
+import QuotationsForm from '../pages/QuotationsForm.vue'
+import QuotationDetail from '../pages/QuotationDetail.vue'
 
 
 const routes = [
@@ -44,6 +45,21 @@ const routes = [
     path: '/sales',
     name: 'Sales',
     component: SalesPage,
+  },
+  {
+    path: '/quotations/new',
+    name: 'QuotationsForm',
+    component: QuotationsForm,
+  },
+  {
+    path: '/quotations/:id',
+    name: 'QuotationDetail',
+    component: QuotationDetail,
+  },
+  {
+    path: '/quotations/:id/edit',
+    name: 'QuotationsFormEdit',
+    component: QuotationsForm,
   },
 ]
 

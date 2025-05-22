@@ -38,22 +38,22 @@
         <!-- <label class="form-label">รหัสผู้ติดต่อ</label>
         <input class="form-control mb-2" v-model="form.code" /> -->
         <label class="form-label">ชื่อลูกค้า(ภาษาไทย)</label>
-        <input class="form-control mb-2" v-model="form.businessName" placeholder="ตัวอย่างการกรอก: แดง" />
+        <input class="form-control mb-2" v-model="form.name_th" placeholder="ตัวอย่างการกรอก: แดง" />
         <label class="form-label">ชื่อลูกค้า(ภาษาอังกฤษ)</label>
-        <input class="form-control mb-2" v-model="form.english_name" placeholder="ตัวอย่างการกรอก:  John " />
+        <input class="form-control mb-2" v-model="form.name_en" placeholder="ตัวอย่างการกรอก:  John " />
         <label class="form-label">สัญชาติ</label>
         <div class="mb-2">
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" v-model="form.zone" value="thai" id="zone1">
+            <input class="form-check-input" type="radio" v-model="form.nationality" value="TH" id="zone1">
             <label class="form-check-label" for="zone1">ไทย</label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" v-model="form.zone" value="foreign" id="zone2">
+            <input class="form-check-input" type="radio" v-model="form.nationality" value="MM" id="zone2">
             <label class="form-check-label" for="zone2">พม่า</label>
           </div>
         </div>
         <label class="form-label">เบอร์มือถือ</label>
-        <input class="form-control mb-2" v-model="form.mobile" type="tel" maxlength="10" @input="form.mobile = form.mobile.replace(/\D/g, '')" />
+        <input class="form-control mb-2" v-model="form.phone_number" type="tel" maxlength="10" @input="form.phone_number = form.phone_number.replace(/\D/g, '')" />
         <label class="form-label">Line ID</label>
         <input class="form-control mb-2" v-model="form.lineId" />
         <label class="form-label">Viber Name </label>
@@ -122,50 +122,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+
 import { useContactFormStore } from '../stores/Contacts'
+import { useRouter } from 'vue-router'
+import { reactive } from 'vue'
 
 const store = useContactFormStore()
 
-const form = ref({
-  contactType: 'individual',
-  type: [],
-  zone: 'thai',
-  code: '',
-  businessName: '',
-  english_name: '',
-  taxId: '',
-  officeType: 'main',
+// function onSubmit() {
+//   contactStore.submitForm()
+// }
+
+const form = reactive({
+  name_th: '',
+  name_en: '',
+  nationality: '',
+  phone_number: '',
+  line_id: '',
+  viber_Name: '',
   address: '',
-  zip: '',
-  shippingAddress: '',
-  officePhone: '',
-  fax: '',
-  website: '',
-  contactName: '',
-  email: '',
-  mobile: '',
+  businessName: '',
+  zone: '',
   lineId: '',
   viberPhone: '',
-  bank: '',
-  bankAccount: '',
-  bankBranch: '',
-  bankType: 'saving',
-  hasForeignBank: false,
-  swiftCode: '',
-  bankAddress: '',
-  note: ''
 })
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
 const submit = () => {
-  console.log("Submitting form:", form)
-  store.submitForm()
+  const formData = {
+    name_th: form.name_th,
+    name_en: form.name_en,
+    nationality: form.nationality,
+    phone_number: form.phone_number,
+    line_id: form.lineId,
+    viber_name: form.viberPhone,
+    address: form.address
+  }
+
+  console.log("Submitting form data:", formData)
+  store.submitForm(formData)
 }
-
-
 
 function close() {
   router.push('/contactbook')

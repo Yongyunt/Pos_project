@@ -63,8 +63,8 @@ const closeSidebarOnMobile = () => {
 }
 
 const menuItems = [
-  { id: 'sales', name: 'การขาย', path: '/sales', icon: 'CubeIcon' },
   { id: 'quotations', name: 'ใบเสนอราคา', path: '/quotations', icon: 'DocumentTextIcon' },
+  { id: 'sales', name: 'การขาย', path: '/sales', icon: 'CubeIcon' },
   { id: 'receipts', name: 'ใบเสร็จรับเงิน', path: '/receipts', icon: 'ReceiptIcon' },
   { id: 'products', name: 'สินค้า', path: '/products', icon: 'CashIcon' },
   { id: 'contactbook', name: 'สมุดรายชื่อ', path: '/contactbook', icon: 'UserGroupIcon' },

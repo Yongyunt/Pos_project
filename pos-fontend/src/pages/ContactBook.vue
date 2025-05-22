@@ -25,10 +25,10 @@
           <thead>
             <tr>
               <th>รายชื่อ</th>
-              <th>ชื่อผู้ติดต่อ</th>
+              <th>สัญชาติ</th>
               <th>เบอร์ติดต่อ</th>
-              <th>อีเมล</th>
-              <th>ประเภท</th>
+              <th>Line ID</th>
+              <th>Viber</th>
               <th></th>
             </tr>
           </thead>
@@ -37,14 +37,14 @@
               <tr class="group-row">
                 <td colspan="6"><b>{{ groupName }}</b></td>
               </tr>
-              <tr v-for="contact in group" :key="contact.name">
-                <td>{{ contact.name }}<br><span class="subtext">สำนักงานใหญ่</span></td>
-                <td>{{ contact.contactName }}</td>
-                <td>{{ contact.phone }}</td>
-                <td>{{ contact.email }}</td>
-                <td>{{ contact.type }}</td>
+              <tr v-for="customer in group" :key="customer.id">
+                <td>{{ customer.name_th }}<br><span class="subtext">{{ customer.name_en }}</span></td>
+                <td>{{ customer.nationality === 'TH' ? 'ไทย' : 'พม่า' }}</td>
+                <td>{{ customer.phone_number }}</td>
+                <td>{{ customer.line_id }}</td>
+                <td>{{ customer.viber_name }}</td>
                 <td>
-                  <button class="btn btn-danger btn-sm me-1" @click="deleteContact(contact.name)">
+                  <button class="btn btn-danger btn-sm me-1" @click="deleteContact(customer.id)">
                     <font-awesome-icon icon="trash" />
                   </button>
                   <el-button icon="el-icon-more" circle size="small" class="row-action"></el-button>
@@ -59,42 +59,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-// import { ElIcon, ElButton, ElTable, ... } from 'element-plus'
+import { useContactFormStore } from '../stores/Contacts'
 
-interface Contact {
-  name: string
-  contactName: string
-  phone: string
-  email: string
-  type: string
-  group: string
+interface Customer {
+  id: number
+  name_th: string
+  name_en: string
+  nationality: 'TH' | 'MM'
+  phone_number: string
+  line_id: string
+  viber_name: string
+  address: string
 }
 
-const contacts = ref<Contact[]>([])
-
+const contactStore = useContactFormStore()
+const customers = ref<Customer[]>([])
 const search = ref('')
 const router = useRouter()
+
+onMounted(async () => {
+  customers.value = await contactStore.getCustomer()
+})
 
 function openSaleForm() {
   router.push('/contactbook/new')
 }
 
-function deleteContact(name: string) {
-  if (confirm(`คุณต้องการลบรายชื่อ "${name}" ใช่หรือไม่?`)) {
-    contacts.value = contacts.value.filter(contact => contact.name !== name)
+async function deleteContact(id: number) {
+  if (confirm('คุณต้องการลบรายชื่อนี้ใช่หรือไม่?')) {
+    const success = await contactStore.deleteCustomer(id)
+    if (success) {
+      alert('ลบรายชื่อสำเร็จ')
+      customers.value = await contactStore.getCustomer()
+    } else {
+      alert('เกิดข้อผิดพลาดในการลบรายชื่อ')
+    }
   }
 }
 
 // Add computed property to group contacts
 const groupContacts = computed(() => {
-  const groups: { [key: string]: Contact[] } = {}
-  contacts.value.forEach(contact => {
-    if (!groups[contact.group]) {
-      groups[contact.group] = []
+  const groups: { [key: string]: Customer[] } = {}
+  customers.value.forEach(customer => {
+    const group = customer.nationality === 'TH' ? 'ลูกค้าชาวไทย' : 'ลูกค้าชาวต่างชาติ'
+    if (!groups[group]) {
+      groups[group] = []
     }
-    groups[contact.group].push(contact)
+    groups[group].push(customer)
   })
   return groups
 })
